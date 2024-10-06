@@ -7,7 +7,7 @@ export const runtime = "edge";
 const textEncorder = new TextEncoder();
 
 export async function GET(req) {
-  const ws = new WebSocket("wss://bch.imaginary.cash:50004");
+  const ws = new WebSocket("ws://localhost:3030");
 
   ws.addEventListener("error", function (errorEvent) {
     console.error("A WebSocket error occurred: ", errorEvent.message);

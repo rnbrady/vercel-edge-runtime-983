@@ -4,6 +4,8 @@
 // Remove this line and the bug disappears
 export const runtime = "edge";
 
+const textEncorder = new TextEncoder();
+
 export async function GET(req) {
   const ws = new WebSocket("ws://localhost:3030");
 
@@ -25,14 +27,12 @@ export async function GET(req) {
     }, 1000);
   });
 
-
-  const encoder = new TextEncoder();
-    const customReadable = new ReadableStream({
-      start(controller) {
+  const customReadable = new ReadableStream({
+    start(controller) {
         ws.addEventListener("message", function message(event) {
           console.log("received: %s", event.data);
 
-          controller.enqueue(`event: data\ndata: ${event.data}\n\n`);
+          controller.enqueue(textEncorder.encode(`event: data\ndata: ${event.data}\n\n`));
         });
       },
     cancel() {

@@ -4,6 +4,8 @@
 // Remove this line and the bug disappears
 export const runtime = "edge";
 
+const textEncorder = new TextEncoder();
+
 export async function GET(req) {
   const ws = new WebSocket("ws://bch.imaginary.cash:50003");
 
@@ -14,28 +16,37 @@ export async function GET(req) {
   ws.addEventListener("open", function open() {
     let counter = 0;
 
-    setInterval(() => {
+    timer = setInterval(() => {
       const message = counter < 1 
         ? `{"id":0,"method":"server.version","params":["vercel/edge-runtime#983","1.5"]}`
         : `{"id":${counter.toString()},"method":"server.ping","params":[]}`;
 
-      ws.send(message);
+      ws.send(textEncorder.encode(message));
 
       console.log("sent: ", message);
 
       counter++;
     }, 1000);
-
-
   });
 
-  ws.addEventListener("message", function message(event) {
-    console.log("received: %s", event.data);
+  const customReadable = new ReadableStream({
+    start(controller) {
+      ws.addEventListener("message", function message(event) {
+        console.log("received: %s", event.data);
+
+        controller.enqueue(textEncorder.encode(`event: data\ndata: ${event.data}\n\n`));
+      });
+    },
+    cancel() {
+      ws.close();
+
+      clearInterval(timer);
+    }
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 60000));
-
-  clearInterval(timer);
-
-  return new Response("Test complete after running for 60 seconds");
+  return new Response(customReadable, {
+    headers: {
+      "Content-Type": "text/event-stream"
+    }
+  });
 }

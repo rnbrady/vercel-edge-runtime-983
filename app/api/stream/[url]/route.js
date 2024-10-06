@@ -6,8 +6,12 @@ export const runtime = "edge";
 
 const textEncorder = new TextEncoder();
 
-export async function GET(req) {
-  const ws = new WebSocket("wss://bch.imaginary.cash:50004");
+export async function GET(_, { params }) {
+  const decodedUrl = decodeURIComponent(params.url);
+
+  console.log("Decoded URL:", decodedUrl);
+
+  const ws = new WebSocket(decodedUrl);
 
   ws.addEventListener("error", function (errorEvent) {
     console.error("A WebSocket error occurred: ", errorEvent.message);
